@@ -308,12 +308,12 @@ Blurs the line between module and logic.
 ```csharp
 // File: ProcessOrder.cs
 [Scope] arg Order order;
-[Scope] [Database] arg IRepository repo;
+[Scope] [Database] arg DatabaseData data;
 
 // The entire file code is the function body.
 if (order.Amount > 100) 
 {
-    repo.Save(order with { Discount = 0.1 });
+    Save(order with { Discount = 0.1 }); // you dont need pass db connection, it retrieved by itself
 }
 
 ```
