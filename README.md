@@ -266,18 +266,40 @@ The current C# syntax is perfectly suited for incremental memory if its "under-t
 * **Assignment Syntax (`a.Name = ""`):** To avoid breaking OOP habits, this syntax can be allowed but made functional. When you write `user.Name = "Ivan"`, you aren't changing the old object. The compiler implicitly does `user = user with { Name = "Ivan" }`.
 * **Note:** This creates a new object in the current page. The old one remains untouched, guaranteeing predictability for other functions using the same reference.
 
-## 3. Inheritance and Interfaces (Contextual Adaptation)
+## 3. Syntactic Inheritance and Data Composition
 
-Classic inheritance in OOP is memory hell. In Scopy, it is replaced by composition of data and contracts.
+Scopy redefines inheritance to solve the performance and complexity issues of traditional OOP. In this model, inheritance is a purely syntactic and IDE-level convenience, not a runtime behavior.
 
-* **Interfaces as Function Contracts:** Instead of a virtual method table (vtable), an interface in Scopy is a set of **Contract Functions**. Implementation is pulled from the Scope, not the object.
-* **Data Inheritance:** This is simply nesting one structure inside another.
+Data-Only Inheritance: Inheritance is restricted to data (fields). Methods are strictly forbidden within [ScopeRecord] types.
+
+Multiple Inheritance: Since inheritance is technically just data composition, Scopy can safely support multiple inheritance. This allows for highly flexible data modeling that is impossible in standard C#.
+
+Zero-Knowledge Runtime: Under the hood, the object has no concept of "parents" or a class hierarchy. The compiler simply flattens the fields into a single, contiguous block of memory. The IDE provides the illusion of inheritance, allowing you to access "inherited" fields via dot-notation.
 
 ```csharp
-public record Admin(User BaseUser, int Level); 
-// Dot access: admin.Name -> translates to admin.BaseUser.Name
+[ScopeRecord]
+public record UserBase(int Id, string Name);
 
+[ScopeRecord]
+public record Permissions(bool IsAdmin, bool CanEdit);
+
+// Syntactic Multiple Inheritance (Composite under the hood)
+[ScopeRecord]
+public record Admin(int Level) : UserBase, Permissions;
+
+// Usage in IDE
+var admin = Admin(Id: 1, Name: "Alex", IsAdmin: true, CanEdit: true, Level: 10);
+
+// The runtime sees one flat object with 5 fields.
+// The IDE allows: 
+var name = admin.Name;
 ```
+Why this works:
+Memory Efficiency: No hidden pointers, no metadata headers, and no vtable. The memory layout is as lean as a C struct.
+
+IDE Support: You get the familiar "inherited" experience with autocompletion, but without the baggage of traditional OOP.
+
+Decoupled Logic: Since logic lives in static functions, you don't "inherit" behavior—you simply apply functions to data that matches the required shape.
 
 ## 4. "File as Function" Concept (Scripting Experience)
 
